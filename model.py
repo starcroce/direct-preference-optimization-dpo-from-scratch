@@ -22,8 +22,6 @@ def log_softmax(logits, axis=-1):
     return logits - x_max - log_sum
 
 # Step 2 - softmax
-import numpy as np
-
 def softmax(logits, axis=-1):
     # TODO: Convert an array of logits into a probability distribution along a given axis
     x_max = np.max(logits, axis=axis, keepdims=True)
