@@ -37,8 +37,11 @@ def gather_token_logprobs(log_probs, token_ids):
     )
     return selected.squeeze(-1)
 
-# Step 4 - masked_sequence_logprob (not yet solved)
-# TODO: implement
+# Step 4 - masked_sequence_logprob
+def masked_sequence_logprob(token_logprobs, mask):
+    # TODO: Sum per-token log-probabilities under a binary mask to obtain a single sequence log-probability per example.
+    masked_logprobs = token_logprobs * mask
+    return np.sum(masked_logprobs, axis=-1)
 
 # Step 5 - init_policy_params (not yet solved)
 # TODO: implement
