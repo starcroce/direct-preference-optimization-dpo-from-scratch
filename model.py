@@ -75,8 +75,18 @@ def policy_token_logits(params, token_ids):
     outputs = embs @ W_out + b_out
     return outputs
 
-# Step 7 - policy_sequence_logprob (not yet solved)
-# TODO: implement
+# Step 7 - policy_sequence_logprob
+def policy_sequence_logprob(params, token_ids, mask):
+    # TODO: Compute the total masked sequence log-probability under the current policy...
+    embed, W_out, b_out = params["embed"], params["W_out"], params["b_out"]
+    embs = embed[token_ids]
+    logits = embs @ W_out + b_out
+
+    log_probs = log_softmax(logits)
+    token_logprobs = gather_token_logprobs(log_probs, token_ids)
+    seq_logprobs = masked_sequence_logprob(token_logprobs, mask)
+
+    return seq_logprobs
 
 # Step 8 - sequence_logprob_grad (not yet solved)
 # TODO: implement
