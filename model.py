@@ -67,8 +67,13 @@ def init_policy_params(vocab_size, d_model, rng=None):
         "b_out": b_out,
     }
 
-# Step 6 - policy_token_logits (not yet solved)
-# TODO: implement
+# Step 6 - policy_token_logits
+def policy_token_logits(params, token_ids):
+    # TODO: Compute next-token logits for every position from policy params and token ids.
+    embed, W_out, b_out = params["embed"], params["W_out"], params["b_out"]
+    embs = embed[token_ids]
+    outputs = embs @ W_out + b_out
+    return outputs
 
 # Step 7 - policy_sequence_logprob (not yet solved)
 # TODO: implement
