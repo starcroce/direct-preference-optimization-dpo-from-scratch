@@ -30,8 +30,16 @@ def softmax(logits, axis=-1):
     e_x = np.exp(logits - x_max)
     return e_x / np.sum(e_x, axis=axis, keepdims=True)
 
-# Step 3 - gather_token_logprobs (not yet solved)
-# TODO: implement
+# Step 3 - gather_token_logprobs
+def gather_token_logprobs(log_probs, token_ids):
+    # TODO: Extract the log-probability of each observed token from a full vocab log-prob tensor...
+    token_ids = token_ids[:, :, np.newaxis]
+    selected = np.take_along_axis(
+        log_probs,
+        token_ids,
+        axis=-1,
+    )
+    return selected.squeeze(-1)
 
 # Step 4 - masked_sequence_logprob (not yet solved)
 # TODO: implement
