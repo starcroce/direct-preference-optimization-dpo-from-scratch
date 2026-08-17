@@ -234,8 +234,62 @@ def dpo_loss(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen,
     loss = np.mean(np.logaddexp(0, -margins))
     return float(loss.item())
 
-# Step 17 - dpo_loss_grad (not yet solved)
-# TODO: implement
+# Step 17 - dpo_loss_grad
+def dpo_loss_grad(params, batch, ref_logprobs_batch, beta):
+    # TODO: Evaluate DPO loss and return parameter gradients for the policy
+    chosen_ids = batch["chosen_ids"]
+    rejected_ids = batch["rejected_ids"]
+    chosen_mask = batch["chosen_mask"]
+    rejected_mask = batch["rejected_mask"]
+
+    ref_logprob_chosen = ref_logprobs_batch["chosen"]
+    ref_logprob_rejected = ref_logprobs_batch["rejected"]
+
+    policy_logprob_chosen = policy_sequence_logprob(
+        params, chosen_ids, chosen_mask,
+    )
+    policy_logprob_rejected = policy_sequence_logprob(
+        params, rejected_ids, rejected_mask,
+    )
+    loss = dpo_loss(
+        policy_logprob_chosen, 
+        policy_logprob_rejected, 
+        ref_logprob_chosen, 
+        ref_logprob_rejected, 
+        beta,
+    )
+
+    batch_size, seq_len = chosen_ids.shape
+    margins = dpo_pair_margin(
+        policy_logprob_chosen,
+        policy_logprob_rejected,
+        ref_logprob_chosen,
+        ref_logprob_rejected,
+        beta,
+    )
+    dpo_weights = (1 / (1 + np.exp(margins))) * beta / batch_size
+
+    grads = {
+        "W_out": np.zeros_like(params["W_out"]),
+        "b_out": np.zeros_like(params["b_out"]),
+        "embed": np.zeros_like(params["embed"]),
+    }
+    for i in range(batch_size):
+        grad_chosen = sequence_logprob_grad(
+            params, 
+            chosen_ids[i : i + 1], 
+            chosen_mask[i : i + 1],
+        )
+        grad_rejected = sequence_logprob_grad(
+            params, 
+            rejected_ids[i : i + 1], 
+            rejected_mask[i : i + 1],
+        )
+        grads["W_out"] += dpo_weights[i] * (grad_rejected["W_out"] - grad_chosen["W_out"])
+        grads["b_out"] += dpo_weights[i] * (grad_rejected["b_out"] - grad_chosen["b_out"])
+        grads["embed"] += dpo_weights[i] * (grad_rejected["embed"] - grad_chosen["embed"])
+
+    return loss, grads
 
 # Step 18 - dpo_train_step (not yet solved)
 # TODO: implement
