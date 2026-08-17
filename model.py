@@ -209,8 +209,17 @@ def policy_reference_logratio(policy_logprob, reference_logprob):
     # TODO: Compute the per-sequence log-ratio log pi_theta(y) - log pi_ref(y)
     return policy_logprob - reference_logprob
 
-# Step 15 - dpo_pair_margin (not yet solved)
-# TODO: implement
+# Step 15 - dpo_pair_margin
+def dpo_pair_margin(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected, beta):
+    # TODO: Compute the scaled DPO pair margin for a batch of preference pairs
+    chosen_log_ratios = policy_reference_logratio(
+        policy_logprob_chosen, ref_logprob_chosen,
+    )
+    rejected_log_ratios = policy_reference_logratio(
+        policy_logprob_rejected, ref_logprob_rejected,
+    )
+    margin = beta * (chosen_log_ratios - rejected_log_ratios)
+    return margin
 
 # Step 16 - dpo_loss (not yet solved)
 # TODO: implement
