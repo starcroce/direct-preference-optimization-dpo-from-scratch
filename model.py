@@ -391,8 +391,21 @@ def implicit_reward(policy_logprob, reference_logprob, beta):
     )
     return beta * logratio
 
-# Step 23 - preference_accuracy (not yet solved)
-# TODO: implement
+# Step 23 - preference_accuracy
+def preference_accuracy(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen, ref_logprob_rejected, beta):
+    # TODO: fraction of pairs where chosen has higher implicit DPO reward
+    chosen_rewards = implicit_reward(
+        policy_logprob_chosen, 
+        ref_logprob_chosen, 
+        beta,
+    )
+    rejected_rewards = implicit_reward(
+        policy_logprob_rejected,
+        ref_logprob_rejected,
+        beta,
+    )
+    acc = np.mean(chosen_rewards > rejected_rewards)
+    return acc
 
 # Step 24 - kl_to_reference (not yet solved)
 # TODO: implement
