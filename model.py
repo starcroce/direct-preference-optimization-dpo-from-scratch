@@ -383,8 +383,13 @@ def ipo_loss(policy_logprob_chosen, policy_logprob_rejected, ref_logprob_chosen,
     loss = np.mean((margins - target) ** 2)
     return loss
 
-# Step 22 - implicit_reward (not yet solved)
-# TODO: implement
+# Step 22 - implicit_reward
+def implicit_reward(policy_logprob, reference_logprob, beta):
+    # TODO: return the vector of DPO implicit rewards for a batch of sequences
+    logratio = policy_reference_logratio(
+        policy_logprob, reference_logprob,
+    )
+    return beta * logratio
 
 # Step 23 - preference_accuracy (not yet solved)
 # TODO: implement
