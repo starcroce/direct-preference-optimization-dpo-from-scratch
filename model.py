@@ -441,8 +441,86 @@ def reward_margin_stats(policy_logprob_chosen, policy_logprob_rejected, ref_logp
         "frac_positive": frac_pos,
     }
 
-# Step 26 - evaluate_dpo (not yet solved)
-# TODO: implement
+# Step 26 - evaluate_dpo
+def evaluate_dpo(params, pairs, ref_logprobs, beta):
+    # TODO: Aggregate a full set of DPO evaluation metrics over a preference dataset.
+    policy_logprob_chosen = []
+    policy_logprob_rejected = []
+    ref_logprob_chosen = []
+    ref_logprob_rejected = []
+
+    for pair, ref in zip(pairs, ref_logprobs):
+        chosen_ids = pair["chosen_ids"]
+        rejected_ids = pair["rejected_ids"]
+        chosen_mask = pair["chosen_mask"]
+        rejected_mask = pair["rejected_mask"]
+
+        policy_logprob_chosen_curr = policy_sequence_logprob(
+            params,
+            chosen_ids[None, :],
+            chosen_mask[None, :],
+        )
+        policy_logprob_rejected_curr = policy_sequence_logprob(
+            params,
+            rejected_ids[None, :],
+            rejected_mask[None, :],
+        )
+
+        policy_logprob_chosen.append(policy_logprob_chosen_curr)
+        policy_logprob_rejected.append(policy_logprob_rejected_curr)
+        ref_logprob_chosen.append(ref["chosen"])
+        ref_logprob_rejected.append(ref["rejected"])
+
+    policy_logprob_chosen = np.asarray(policy_logprob_chosen)
+    policy_logprob_rejected = np.asarray(policy_logprob_rejected)
+    ref_logprob_chosen = np.asarray(ref_logprob_chosen)
+    ref_logprob_rejected = np.asarray(ref_logprob_rejected)
+
+    loss = dpo_loss(
+        policy_logprob_chosen,
+        policy_logprob_rejected,
+        ref_logprob_chosen,
+        ref_logprob_rejected,
+        beta,
+    )
+    pref_acc = preference_accuracy(
+        policy_logprob_chosen,
+        policy_logprob_rejected,
+        ref_logprob_chosen,
+        ref_logprob_rejected,
+        beta,
+    )
+
+    all_policy_logprobs = np.concatenate([
+        policy_logprob_chosen,
+        policy_logprob_rejected,
+    ])
+    all_ref_logprobs = np.concatenate([
+        ref_logprob_chosen,
+        ref_logprob_rejected,
+    ])
+    kl_to_ref = kl_to_reference(
+        all_policy_logprobs,
+        all_ref_logprobs,
+    )
+
+    margin_stats = reward_margin_stats(
+        policy_logprob_chosen,
+        policy_logprob_rejected,
+        ref_logprob_chosen,
+        ref_logprob_rejected,
+        beta,
+    )
+
+    metrics = {
+        "dpo_loss": loss,
+        "preference_accuracy": pref_acc,
+        "kl_to_reference": kl_to_ref,
+        "mean_margin": margin_stats["mean_margin"],
+        "std_margin": margin_stats["std_margin"],
+        "frac_positive": margin_stats["frac_positive"],
+    }
+    return metrics
 
 # Step 27 - run_dpo_pipeline (not yet solved)
 # TODO: implement
