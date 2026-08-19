@@ -471,10 +471,18 @@ def evaluate_dpo(params, pairs, ref_logprobs, beta):
         ref_logprob_chosen.append(ref["chosen"])
         ref_logprob_rejected.append(ref["rejected"])
 
-    policy_logprob_chosen = np.asarray(policy_logprob_chosen).reshape(-1, 1)
-    policy_logprob_rejected = np.asarray(policy_logprob_rejected).reshape(-1, 1)
-    ref_logprob_chosen = np.asarray(ref_logprob_chosen).reshape(-1, 1)
-    ref_logprob_rejected = np.asarray(ref_logprob_rejected).reshape(-1, 1)
+    policy_logprob_chosen = np.asarray(
+        policy_logprob_chosen
+    ).reshape(-1, 1)
+    policy_logprob_rejected = np.asarray(
+        policy_logprob_rejected
+    ).reshape(-1, 1)
+    ref_logprob_chosen = np.asarray(
+        ref_logprob_chosen
+    ).reshape(-1, 1)
+    ref_logprob_rejected = np.asarray(
+        ref_logprob_rejected
+    ).reshape(-1, 1)
 
     loss = dpo_loss(
         policy_logprob_chosen,
