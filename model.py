@@ -471,10 +471,10 @@ def evaluate_dpo(params, pairs, ref_logprobs, beta):
         ref_logprob_chosen.append(ref["chosen"])
         ref_logprob_rejected.append(ref["rejected"])
 
-    policy_logprob_chosen = np.asarray(policy_logprob_chosen)
-    policy_logprob_rejected = np.asarray(policy_logprob_rejected)
-    ref_logprob_chosen = np.asarray(ref_logprob_chosen)
-    ref_logprob_rejected = np.asarray(ref_logprob_rejected)
+    policy_logprob_chosen = np.asarray(policy_logprob_chosen).reshape(-1, 1)
+    policy_logprob_rejected = np.asarray(policy_logprob_rejected).reshape(-1, 1)
+    ref_logprob_chosen = np.asarray(ref_logprob_chosen).reshape(-1, 1)
+    ref_logprob_rejected = np.asarray(ref_logprob_rejected).reshape(-1, 1)
 
     loss = dpo_loss(
         policy_logprob_chosen,
@@ -522,6 +522,55 @@ def evaluate_dpo(params, pairs, ref_logprobs, beta):
     }
     return metrics
 
-# Step 27 - run_dpo_pipeline (not yet solved)
-# TODO: implement
+# Step 27 - run_dpo_pipeline
+def run_dpo_pipeline(vocab_size, d_model, prompts, chosen_ids, rejected_ids, chosen_mask, rejected_mask, beta, learning_rate, num_steps, batch_size, rng=None):
+    # TODO: Wire the full DPO pipeline end-to-end from raw arrays to eval...
+    if rng is None:
+        rng = np.random.default_rng()
+
+    params = init_policy_params(vocab_size, d_model, rng=rng)
+    pairs = build_preference_pairs(
+        prompts, 
+        chosen_ids, 
+        rejected_ids, 
+        chosen_mask, 
+        rejected_mask,
+    )
+    
+    ref_logprobs_list = freeze_reference_logprobs(params, pairs)
+    ref_logprobs_dict = {"chosen": [], "rejected": []}
+    for item in ref_logprobs_list:
+        ref_logprobs_dict["chosen"].append(item["chosen"])
+        ref_logprobs_dict["rejected"].append(item["rejected"])
+    
+    ref_logprobs_dict["chosen"] = np.asarray(
+        ref_logprobs_dict["chosen"]
+    )
+    ref_logprobs_dict["rejected"] = np.asarray(
+        ref_logprobs_dict["rejected"]
+    )
+
+    params, history = train_dpo(
+        params, 
+        pairs,
+        ref_logprobs_dict, 
+        beta, 
+        learning_rate, 
+        num_steps, 
+        batch_size, 
+        rng=rng,
+    )
+    eval_metrics = evaluate_dpo(
+        params, 
+        pairs, 
+        ref_logprobs_list, 
+        beta,
+    )
+
+    res = {
+        "params": params,
+        "history": history,
+        "eval_metrics": eval_metrics,
+    }
+    return res
 
